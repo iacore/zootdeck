@@ -99,7 +99,7 @@ fn columnget(column: *config.ColumnInfo, allocator: std.mem.Allocator) void {
     httpInfo.response_code = 0;
     verb.http = httpInfo;
     gui.schedule(gui.update_column_netstatus_schedule, @as(*anyopaque, @ptrCast(httpInfo)));
-    if (thread.create("net", net.go, verb, netback)) {} else |err| {
+    if (thread.create("net", net.go, verb, netback)) |_| {} else |err| {
         warn("columnget {}", .{err});
     }
 }
@@ -243,9 +243,10 @@ fn netback(command: *thread.Command) void {
                             var images = toot.get("media_attachments").?.Array;
                             column.toots.sortedInsert(toot, alloc);
                             var html = toot.get("content").?.String;
+                            _ = html;
                             //var html = json_lib.jsonStrDecode(jstr, allocator) catch unreachable;
-                            var root = html_lib.parse(html);
-                            html_lib.search(root);
+                            // var root = html_lib.parse(html);
+                            // html_lib.search(root);
                             cache_update(toot, alloc);
 
                             for (images.items) |image| {
