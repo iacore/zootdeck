@@ -33,16 +33,15 @@ pub fn go(data: ?*anyopaque) callconv(.C) ?*anyopaque {
             std.mem.eql(u8, actor.payload.http.content_type, "application/json; charset=utf-8")))
         {
             //warn("{}\n", body); // json dump
-            var json_parser = std.json.Parser.init(allocator, false);
-            if (json_parser.parse(body)) |value_tree| {
+            if (std.json.parseFromSliceLeaky(std.json.Value, allocator, body, .{})) |value_tree| {
                 actor.payload.http.tree = value_tree;
             } else |err| {
-                warn("net json err {}\n", .{err});
+                warn("net json err {!}\n", .{err});
                 actor.payload.http.response_code = 1000;
             }
         }
     } else |err| {
-        warn("net thread http err {}\n", .{err});
+        warn("net thread http err {!}\n", .{err});
     }
     thread.signal(actor, command);
     return null;
@@ -120,7 +119,7 @@ pub fn curl_write(ptr: [*c]const u8, _: usize, nmemb: usize, userdata: *anyopaqu
     var buf = @as(*std.ArrayList(u8), @ptrCast(@alignCast(userdata)));
     var body_part: []const u8 = ptr[0..nmemb];
     buf.appendSlice(body_part) catch |err| {
-        warn("curl_write append fail {}\n", .{err});
+        warn("curl_write append fail {!}\n", .{err});
     };
     return nmemb;
 }

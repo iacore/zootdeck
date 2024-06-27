@@ -175,15 +175,15 @@ pub fn add_column(colInfo: *config.ColumnInfo) void {
 
     c.gtk_grid_attach_next_to(@as(*c.GtkGrid, @ptrCast(container)), column.columnbox, null, c.GTK_POS_RIGHT, 1, 1);
 
-    _ = c.gtk_builder_add_callback_symbol(column.builder, "column.title", @as(?fn () callconv(.C) void, @ptrCast(&column_top_label_title)));
-    _ = c.gtk_builder_add_callback_symbol(column.builder, "column.config", @as(?fn () callconv(.C) void, @ptrCast(&column_config_btn)));
-    _ = c.gtk_builder_add_callback_symbol(column.builder, "column.reload", @as(?fn () callconv(.C) void, @ptrCast(&column_reload)));
-    _ = c.gtk_builder_add_callback_symbol(column.builder, "column.imgonly", @as(?fn () callconv(.C) void, @ptrCast(&column_imgonly)));
-    _ = c.gtk_builder_add_callback_symbol(column.builder, "column.filter_done", @as(?fn () callconv(.C) void, @ptrCast(&column_filter_done)));
-    _ = c.gtk_builder_add_callback_symbol(column.builder, "column_config.done", @as(?fn () callconv(.C) void, @ptrCast(&column_config_done)));
-    _ = c.gtk_builder_add_callback_symbol(column.builder, "column_config.remove", @as(?fn () callconv(.C) void, @ptrCast(&column_remove_btn)));
-    _ = c.gtk_builder_add_callback_symbol(column.builder, "column_config.oauth_btn", @as(?fn () callconv(.C) void, @ptrCast(&column_config_oauth_btn)));
-    _ = c.gtk_builder_add_callback_symbol(column.builder, "column_config.oauth_auth_enter", @as(?fn () callconv(.C) void, @ptrCast(&column_config_oauth_activate)));
+    _ = c.gtk_builder_add_callback_symbol(column.builder, "column.title", @as(?*const fn () callconv(.C) void, @ptrCast(&column_top_label_title)));
+    _ = c.gtk_builder_add_callback_symbol(column.builder, "column.config", @as(?*const fn () callconv(.C) void, @ptrCast(&column_config_btn)));
+    _ = c.gtk_builder_add_callback_symbol(column.builder, "column.reload", @as(?*const fn () callconv(.C) void, @ptrCast(&column_reload)));
+    _ = c.gtk_builder_add_callback_symbol(column.builder, "column.imgonly", @as(?*const fn () callconv(.C) void, @ptrCast(&column_imgonly)));
+    _ = c.gtk_builder_add_callback_symbol(column.builder, "column.filter_done", @as(?*const fn () callconv(.C) void, @ptrCast(&column_filter_done)));
+    _ = c.gtk_builder_add_callback_symbol(column.builder, "column_config.done", @as(?*const fn () callconv(.C) void, @ptrCast(&column_config_done)));
+    _ = c.gtk_builder_add_callback_symbol(column.builder, "column_config.remove", @as(?*const fn () callconv(.C) void, @ptrCast(&column_remove_btn)));
+    _ = c.gtk_builder_add_callback_symbol(column.builder, "column_config.oauth_btn", @as(?*const fn () callconv(.C) void, @ptrCast(&column_config_oauth_btn)));
+    _ = c.gtk_builder_add_callback_symbol(column.builder, "column_config.oauth_auth_enter", @as(?*const fn () callconv(.C) void, @ptrCast(&column_config_oauth_activate)));
     _ = c.gtk_builder_add_callback_symbol(column.builder, "zoot_drag", zoot_drag);
     _ = c.gtk_builder_connect_signals(column.builder, null);
     c.gtk_widget_show_all(container);
@@ -822,7 +822,7 @@ fn column_config_done(selfptr: *anyopaque) callconv(.C) void {
     thread.signal(myActor, command);
 }
 
-fn g_signal_connect(instance: anytype, signal_name: []const u8, callback: anytype, data: anytype) c.gulong {
+fn g_signal_connect(instance: anytype, signal_name: []const u8, callback: anytype, data: ?*anyopaque) c.gulong {
     // pub extern fn g_signal_connect_data(instance: gpointer,
     // detailed_signal: [*]const gchar,
     // c_handler: GCallback,
@@ -832,12 +832,7 @@ fn g_signal_connect(instance: anytype, signal_name: []const u8, callback: anytyp
     // connect_flags: GConnectFlags) gulong;
     // typedef void* gpointer;
     var signal_name_null: []u8 = allocator.dupeZ(u8, signal_name) catch unreachable;
-    var data_ptr: ?*anyopaque = undefined;
-    if (@sizeOf(@TypeOf(data)) != 0) {
-        data_ptr = @as(?*anyopaque, @ptrCast(data));
-    } else {
-        data_ptr = null;
-    }
+    var data_ptr: ?*anyopaque = data;
     var thing = @as(c.gpointer, @ptrCast(instance));
     return c.g_signal_connect_data(thing, signal_name_null.ptr, @as(c.GCallback, @ptrCast(&callback)), data_ptr, null, c.G_CONNECT_AFTER);
 }

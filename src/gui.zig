@@ -42,7 +42,7 @@ pub fn go(data: ?*anyopaque) callconv(.C) ?*anyopaque {
         warn("final mainloop {}\n", .{guilib.mainloop()});
         guilib.gui_end();
     } else |err| {
-        warn("gui error {}\n", .{err});
+        warn("gui error {!}\n", .{err});
     }
     return null;
 }
